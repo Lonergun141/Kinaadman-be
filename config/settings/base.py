@@ -13,7 +13,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'default-insecure-key')
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = ['*']
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
@@ -33,6 +33,9 @@ INSTALLED_APPS = [
 
     # Local apps
     'core',
+    'apps.tenants',
+    'apps.users',
+    'apps.authentication',
 ]
 
 MIDDLEWARE = [
@@ -92,6 +95,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = ['apps.users.backends.EmailBackend']
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

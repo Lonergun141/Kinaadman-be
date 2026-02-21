@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinaadman System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Inter Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-50 flex items-center justify-center min-h-screen">
+
+    <div class="text-center w-full max-w-lg p-10 bg-white border border-zinc-200 rounded-2xl shadow-sm">
+        <div class="flex justify-center mb-8">
+            <div class="w-16 h-16 bg-zinc-900 rounded-xl flex items-center justify-center shadow-md">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-bold text-zinc-900 tracking-tight mb-3">Project Kinaadman</h1>
+        <p class="text-zinc-500 mb-10 text-sm leading-relaxed">System Gateway and Authentication Terminal. Please
+            proceed to the administrative workspace to log in.</p>
+
+        <div class="flex flex-col gap-3 justify-center">
+            <a href="/admin/"
+                class="inline-flex justify-center items-center px-6 py-3 bg-zinc-900 text-white text-sm font-semibold rounded-lg hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 w-full">
+                Login to Admin Dashboard
+                <svg class="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+                    </path>
+                </svg>
+            </a>
+            <a href="/v1/docs/"
+                class="inline-flex justify-center items-center px-6 py-3 bg-white text-zinc-700 border border-zinc-200 text-sm font-medium rounded-lg hover:bg-zinc-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 w-full">
+                View API Documentation
+            </a>
+        </div>
+    </div>
+
+</body>
+
+</html>

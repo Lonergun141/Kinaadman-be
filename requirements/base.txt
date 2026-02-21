@@ -1,6 +1,7 @@
 asgiref==3.11.1
 Django==6.0.2
 django-cors-headers==4.9.0
+django-jazzmin==3.0.2
 django-ninja==1.5.3
 djangorestframework==3.16.1
 email-validator==2.2.0

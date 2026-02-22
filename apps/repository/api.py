@@ -194,23 +194,70 @@ def delete_program(request, program_id: UUID):
 # ==========================================
 # Theses Router
 # ==========================================
+from django.contrib.postgres.search import SearchQuery, SearchRank
+
 @theses_router.get("/", response=List[ThesisListSchema])
 def list_theses(request, search: str = None, status: str = None):
     """
-    List Theses
+    ## Browse and Search Theses
     
-    Browse and search through the thesis repository. 
-    Supports optional filtering by `search` (title/abstract matches) and `status`.
+    Query the thesis repository. Supports optional filtering by `status` and `search` (Full Text Search).
+
+    ---
+
+    ### **Frontend Integration: Full Text Search**
+    This endpoint supports powerful native PostgreSQL Full Text Search (FTS). It uses linguistic root lexemes (e.g. searching 'networking' will intelligently match 'network') and it automatically ranks your results by relevance.
+
+    ### 💻 Next.js Integration Example
+
+    ```javascript
+    import { useEffect, useState } from 'react';
+
+    export default function SearchTheses() {
+      const [results, setResults] = useState([]);
+      const [query, setQuery] = useState('network'); // Sample search term
+      const tenantId = '3fec168e-2c39-46f3-8734-462d8562d9d7'; // Sample Tenant ID
+
+      useEffect(() => {
+        const fetchTheses = async () => {
+          const res = await fetch(`http://127.0.0.1:8000/v1/theses/?search=${encodeURIComponent(query)}`, {
+            headers: { "X-Tenant-ID": tenantId }
+          });
+          const data = await res.json();
+          // Backend automatically ranks and orders 'data' by FTS relevance!
+          setResults(data); 
+        };
+        fetchTheses();
+      }, [query]);
+
+      return (
+        <div>
+          {results.map(t => (
+            <div key={t.id}>
+              <h3>{t.title}</h3>
+              <p>{t.abstract}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    ```
     """
     tenant = get_tenant_from_request(request)
     qs = Thesis.objects.filter(tenant=tenant).select_related('department', 'program')
     
     if search:
-        qs = qs.filter(title__icontains=search) | qs.filter(abstract__icontains=search)
+        query = SearchQuery(search, config='english')
+        qs = qs.filter(search_vector=query).annotate(
+            rank=SearchRank('search_vector', query)
+        ).order_by('-rank', '-year')
+    elif not search:
+        # Default fallback ordering when not searching
+        qs = qs.order_by('-year')
+
     if status:
         qs = qs.filter(status=status)
         
-    # Ordering intentionally neglected for brevity, could add ?ordering=-year
     return qs
 
 @theses_router.post("/", response=ThesisDetailSchema)

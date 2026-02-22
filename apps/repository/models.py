@@ -23,6 +23,9 @@ class Program(models.Model):
     def __str__(self):
         return f"{self.name} - {self.department.name}"
 
+from django.contrib.postgres.search import SearchVector, SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 class Thesis(TimeStampedModel):
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
@@ -39,6 +42,9 @@ class Thesis(TimeStampedModel):
     year = models.IntegerField()
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='DRAFT')
 
+    # FTS
+    search_vector = SearchVectorField(null=True, blank=True)
+
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='theses')
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, null=True, blank=True, related_name='theses')
     created_by_membership = models.ForeignKey(TenantMembership, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_theses')
@@ -46,6 +52,20 @@ class Thesis(TimeStampedModel):
     submitted_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            GinIndex(fields=['search_vector']),
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if hasattr(self, 'id') and self.id:
+            # We must use update() since SearchVector is a query expression, not a string value
+            Thesis.objects.filter(pk=self.pk).update(
+                search_vector=SearchVector('title', weight='A', config='english') + 
+                              SearchVector('abstract', weight='B', config='english')
+            )
 
     def __str__(self):
         return self.title

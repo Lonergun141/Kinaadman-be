@@ -5,7 +5,11 @@ from apps.repository.api import departments_router, programs_router, theses_rout
 api = NinjaAPI(
     title="Kinaadman API",
     version="1.0.0",
-    description="Campus-Only Multi-Tenant Thesis Repository API",
+    description="""
+### Campus-Only Multi-Tenant Thesis Repository API
+
+All API routes within Kinaadman are strictly tenant-isolated. You must pass a valid `X-Tenant-ID` HTTP header for non-browser integration testing.
+    """,
     docs_url="docs/",
     docs=Redoc()
 )

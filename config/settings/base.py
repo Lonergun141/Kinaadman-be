@@ -131,14 +131,17 @@ UNFOLD = {
     "SITE_TITLE": "Kinaadman",
     "SITE_HEADER": "Kinaadman Dashboard",
     "SITE_URL": "/",
+    "STYLES": [
+        lambda request: static("css/admin_custom.css"),
+    ],
     "SITE_ICON": {
-        "light": lambda request: static("icon-light.png"),  # light mode
-        "dark": lambda request: static("icon-dark.png"),  # dark mode
+        "light": lambda request: static("icon-light.png") + "?v=2",  # light mode
+        "dark": lambda request: static("icon-dark.png") + "?v=2",  # dark mode
     },
     "SITE_FAVICONS": [
         {
             "rel": "icon",
-            "href": lambda request: static("icon-light.png"),
+            "href": lambda request: static("icon-light.png") + "?v=2",
         }
     ],
     # "SITE_LOGO": {
@@ -148,22 +151,27 @@ UNFOLD = {
     "SITE_SYMBOL": "speed",
     "COLORS": {
         "primary": {
-            "50": "250 250 250",
-            "100": "244 244 245",
-            "200": "228 228 231",
-            "300": "212 212 216",
-            "400": "161 161 170",
-            "500": "113 113 122",
-            "600": "82 82 91",
-            "700": "63 63 70",
-            "800": "39 39 42",
-            "900": "24 24 27",
-            "950": "9 9 11",
+            "50": "242 246 249",
+            "100": "223 232 239",
+            "200": "191 209 223",
+            "300": "153 181 204",
+            "400": "109 146 179",
+            "500": "75 116 153",
+            "600": "56 90 122",
+            "700": "45 72 99",
+            "800": "38 61 84",
+            "900": "15 42 68",
+            "950": "10 26 43",
         },
+    },
+    "COMMAND": {
+        "search_models": True,
+        "show_history": True,
     },
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
+        "command_search": True,
         "navigation": [
             {
                 "title": "Tenants",

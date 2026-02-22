@@ -1,53 +1,114 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinaadman System</title>
+    <title>Kinaadman System Portal</title>
+    <link rel="icon" href="{% static 'icon-light.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Inter Font */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
         }
     </style>
 </head>
 
-<body class="bg-zinc-50 flex items-center justify-center min-h-screen">
+<body class="min-h-screen flex items-stretch">
 
-    <div class="text-center w-full max-w-lg p-10 bg-white border border-zinc-200 rounded-2xl shadow-sm">
-        <div class="flex justify-center mb-8">
-            <div class="w-16 h-16 bg-zinc-900 rounded-xl flex items-center justify-center shadow-md">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                    </path>
-                </svg>
+    <!-- Left Sidebar: Corporate Branding (Full Height) -->
+    <div class="w-1/2 bg-slate-800 p-12 text-white flex flex-col justify-between">
+        <div class="max-w-xl mx-auto w-full">
+            <div class="flex items-center space-x-3 mb-10">
+                <img src="{% static 'icon-light.png' %}" alt="Kinaadman Logo"
+                    class="w-10 h-10 rounded-sm object-contain bg-white p-0.5">
+                <span class="font-semibold text-xl tracking-wide uppercase">Kinaadman</span>
             </div>
+            <h2 class="text-4xl font-bold leading-tight mb-6">Enterprise<br>Repository<br>System</h2>
+            <div class="w-12 h-1.5 bg-blue-500 mb-6"></div>
+            <p class="text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
+                Secure, scalable, and centralized management of academic assets and research workflows.
+            </p>
         </div>
 
-        <h1 class="text-3xl font-bold text-zinc-900 tracking-tight mb-3">Project Kinaadman</h1>
-        <p class="text-zinc-500 mb-10 text-sm leading-relaxed">System Gateway and Authentication Terminal. Please
-            proceed to the administrative workspace to log in.</p>
+        <div class="max-w-xl mx-auto w-full text-xs text-slate-500 mt-auto">
+            v2.1.0-stable
+        </div>
+    </div>
 
-        <div class="flex flex-col gap-3 justify-center">
-            <a href="/admin/"
-                class="inline-flex justify-center items-center px-6 py-3 bg-zinc-900 text-white text-sm font-semibold rounded-lg hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 w-full">
-                Login to Admin Dashboard
-                <svg class="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
-                    </path>
-                </svg>
-            </a>
-            <a href="/v1/docs/"
-                class="inline-flex justify-center items-center px-6 py-3 bg-white text-zinc-700 border border-zinc-200 text-sm font-medium rounded-lg hover:bg-zinc-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-900 w-full">
-                View API Documentation
-            </a>
+    <!-- Right Side: Content & Action (Full Height) -->
+    <div class="w-1/2 bg-gray-50 flex flex-col justify-center p-12 lg:p-24 overflow-y-auto">
+        <div class="max-w-md w-full mx-auto">
+
+            <div class="mb-10">
+                <h1 class="text-3xl font-bold text-gray-900 mb-3">System Authentication Gateway</h1>
+                <p class="text-base text-gray-600 border-b border-gray-200 pb-5">
+                    Please select the appropriate portal to proceed with your session. Access is restricted to
+                    authorized personnel only.
+                </p>
+            </div>
+
+            <div class="space-y-5">
+                <!-- Admin Portal Card -->
+                <a href="/admin/"
+                    class="block group border border-gray-200 rounded-sm p-6 hover:border-blue-500 hover:shadow-md transition-all bg-white relative overflow-hidden">
+                    <!-- Accent bar -->
+                    <div
+                        class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top">
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1">
+                            <svg class="h-7 w-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="ml-5">
+                            <h3 class="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                Administrative Workspace</h3>
+                            <p class="mt-2 text-sm text-gray-500">Log in to the central dashboard for tenant, user, and
+                                data management.</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- API Docs Card -->
+                <a href="/v1/docs/"
+                    class="block group border border-gray-200 rounded-sm p-6 hover:border-slate-800 hover:shadow-md transition-all bg-white relative overflow-hidden">
+                    <div
+                        class="absolute left-0 top-0 bottom-0 w-1 bg-slate-800 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top">
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-1">
+                            <svg class="h-7 w-7 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-5">
+                            <h3
+                                class="text-xl font-semibold text-gray-900 group-hover:text-slate-800 transition-colors">
+                                Developer API Portal</h3>
+                            <p class="mt-2 text-sm text-gray-500">Access REST API documentation, endpoints, and
+                                integration guides.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="mt-16 pt-8 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+                <p>&copy; 2026 Kinaadman Systems. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-gray-800 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-800 transition-colors">Terms of Service</a>
+                </div>
+            </div>
+
         </div>
     </div>
 

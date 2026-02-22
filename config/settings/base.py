@@ -31,12 +31,14 @@ INSTALLED_APPS = [
     # Third party
     'rest_framework',
     'corsheaders',
+    'ninja',
 
     # Local apps
     'core',
     'apps.tenants',
     'apps.users',
     'apps.authentication',
+    'apps.repository',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +57,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'core', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,6 +134,12 @@ UNFOLD = {
         "light": lambda request: static("icon-light.png"),  # light mode
         "dark": lambda request: static("icon-dark.png"),  # dark mode
     },
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "href": lambda request: static("icon-light.png"),
+        }
+    ],
     # "SITE_LOGO": {
     #     "light": lambda request: static("logo-light.svg"),  # light mode
     #     "dark": lambda request: static("logo-dark.svg"),  # dark mode

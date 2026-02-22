@@ -97,3 +97,12 @@ class ThesisReviewCreateSchema(Schema):
     decision: str
     comment: Optional[str] = ""
     reviewer_membership_id: UUID
+
+class AuthorAssignSchema(Schema):
+    display_name: str
+    user_id: Optional[UUID] = None
+    sort_order: int = 0
+
+class AdviserAssignSchema(Schema):
+    adviser_membership_id: UUID
+

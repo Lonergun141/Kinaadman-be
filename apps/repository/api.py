@@ -12,7 +12,8 @@ from .schemas import (
     DepartmentSchema, DepartmentCreateSchema,
     ProgramSchema, ProgramCreateSchema,
     ThesisListSchema, ThesisDetailSchema, ThesisCreateUpdateSchema,
-    ThesisSubmitSchema, ThesisReviewCreateSchema
+    ThesisSubmitSchema, ThesisReviewCreateSchema,
+    AuthorAssignSchema, AdviserAssignSchema
 )
 
 # Initialize Routers
@@ -450,6 +451,132 @@ def review_thesis(request, thesis_id: UUID, payload: ThesisReviewCreateSchema):
             note=f"State transitioned via review decision: {payload.decision}"
         )
 
+    thesis.authors_list = list(thesis.authors.all())
+    thesis.advisers_list = list(thesis.advisers.all())
+    return thesis
+
+@theses_router.post("/{thesis_id}/publish", response=ThesisDetailSchema)
+def publish_thesis(request, thesis_id: UUID):
+    """
+    Publish Thesis
+    
+    Change thesis status from 'APPROVED' to 'PUBLISHED'.
+    """
+    tenant = get_tenant_from_request(request)
+    thesis = get_object_or_404(
+        Thesis.objects.select_related('department', 'program').prefetch_related('authors', 'advisers__adviser_membership__user'), 
+        id=thesis_id, 
+        tenant=tenant
+    )
+    
+    if thesis.status != 'APPROVED':
+        raise HttpError(400, "Only approved theses can be published.")
+        
+    old_status = thesis.status
+    thesis.status = 'PUBLISHED'
+    thesis.published_at = timezone.now()
+    thesis.save()
+    
+    ThesisStatusHistory.objects.create(
+        tenant=tenant,
+        thesis=thesis,
+        from_status=old_status,
+        to_status='PUBLISHED',
+        note=f"Thesis published automatically or manually."
+    )
+    
+    thesis.authors_list = list(thesis.authors.all())
+    thesis.advisers_list = list(thesis.advisers.all())
+    return thesis
+
+@theses_router.post("/{thesis_id}/unpublish", response=ThesisDetailSchema)
+def unpublish_thesis(request, thesis_id: UUID):
+    """
+    Unpublish Thesis
+    
+    Change thesis status from 'PUBLISHED' back to 'APPROVED'.
+    """
+    tenant = get_tenant_from_request(request)
+    thesis = get_object_or_404(
+        Thesis.objects.select_related('department', 'program').prefetch_related('authors', 'advisers__adviser_membership__user'), 
+        id=thesis_id, 
+        tenant=tenant
+    )
+    
+    if thesis.status != 'PUBLISHED':
+        raise HttpError(400, "Only published theses can be unpublished.")
+        
+    old_status = thesis.status
+    thesis.status = 'APPROVED'
+    thesis.save()
+    
+    ThesisStatusHistory.objects.create(
+        tenant=tenant,
+        thesis=thesis,
+        from_status=old_status,
+        to_status='APPROVED',
+        note=f"Thesis unpublished."
+    )
+    
+    thesis.authors_list = list(thesis.authors.all())
+    thesis.advisers_list = list(thesis.advisers.all())
+    return thesis
+
+from apps.users.models import User
+from apps.repository.models import ThesisAuthor, ThesisAdviser
+
+@theses_router.post("/{thesis_id}/authors", response=ThesisDetailSchema)
+def assign_author(request, thesis_id: UUID, payload: AuthorAssignSchema):
+    """
+    Assign Author
+    
+    Add an author to a thesis.
+    """
+    tenant = get_tenant_from_request(request)
+    thesis = get_object_or_404(
+        Thesis.objects.select_related('department', 'program').prefetch_related('authors', 'advisers__adviser_membership__user'), 
+        id=thesis_id, 
+        tenant=tenant
+    )
+    
+    user = None
+    if payload.user_id:
+        user = get_object_or_404(User, id=payload.user_id)
+        
+    ThesisAuthor.objects.create(
+        tenant=tenant,
+        thesis=thesis,
+        user=user,
+        display_name=payload.display_name,
+        sort_order=payload.sort_order
+    )
+    
+    thesis.authors_list = list(thesis.authors.all())
+    thesis.advisers_list = list(thesis.advisers.all())
+    return thesis
+
+@theses_router.post("/{thesis_id}/advisers", response=ThesisDetailSchema)
+def assign_adviser(request, thesis_id: UUID, payload: AdviserAssignSchema):
+    """
+    Assign Adviser
+    
+    Add an adviser to a thesis.
+    """
+    tenant = get_tenant_from_request(request)
+    thesis = get_object_or_404(
+        Thesis.objects.select_related('department', 'program').prefetch_related('authors', 'advisers__adviser_membership__user'), 
+        id=thesis_id, 
+        tenant=tenant
+    )
+    
+    membership = get_object_or_404(TenantMembership, id=payload.adviser_membership_id, tenant=tenant)
+    
+    ThesisAdviser.objects.create(
+        tenant=tenant,
+        thesis=thesis,
+        adviser_membership=membership
+    )
+    
     thesis.authors_list = list(thesis.authors.all())
     thesis.advisers_list = list(thesis.advisers.all())
     return thesis

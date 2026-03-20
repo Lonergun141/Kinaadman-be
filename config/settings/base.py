@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR is now three levels up: config/settings/base.py -> config/settings/ -> config/ -> Kinaadman-be/
@@ -17,6 +18,9 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-tenant-id',
+]
 
 # Application definition
 INSTALLED_APPS = [

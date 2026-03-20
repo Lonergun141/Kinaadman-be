@@ -1,6 +1,7 @@
 from typing import List
 from uuid import UUID
 from django.shortcuts import get_object_or_404
+from django.db.models import Case, IntegerField, Q, Value, When
 from ninja import Router
 
 from apps.tenants.models import Tenant
@@ -198,7 +199,12 @@ def delete_program(request, program_id: UUID):
 from django.contrib.postgres.search import SearchQuery, SearchRank
 
 @theses_router.get("/", response=List[ThesisListSchema])
-def list_theses(request, search: str = None, status: str = None):
+def list_theses(
+    request,
+    search: str = None,
+    status: str = None,
+    author_user_id: UUID = None,
+):
     """
     ## Browse and Search Theses
     
@@ -246,12 +252,30 @@ def list_theses(request, search: str = None, status: str = None):
     """
     tenant = get_tenant_from_request(request)
     qs = Thesis.objects.filter(tenant=tenant).select_related('department', 'program')
+
+    if author_user_id:
+        qs = qs.filter(authors__user_id=author_user_id).distinct()
     
     if search:
-        query = SearchQuery(search, config='english')
-        qs = qs.filter(search_vector=query).annotate(
-            rank=SearchRank('search_vector', query)
-        ).order_by('-rank', '-year')
+        normalized_search = search.strip()
+        query = SearchQuery(normalized_search, config='english')
+        qs = qs.annotate(
+            rank=SearchRank('search_vector', query),
+            title_match=Case(
+                When(title__icontains=normalized_search, then=Value(2)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+            abstract_match=Case(
+                When(abstract__icontains=normalized_search, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+        ).filter(
+            Q(search_vector=query) |
+            Q(title__icontains=normalized_search) |
+            Q(abstract__icontains=normalized_search)
+        ).order_by('-title_match', '-abstract_match', '-rank', '-year', 'title')
     elif not search:
         # Default fallback ordering when not searching
         qs = qs.order_by('-year')
@@ -278,6 +302,14 @@ def create_thesis(request, payload: ThesisCreateUpdateSchema):
     if payload.program_id:
          prog = get_object_or_404(Program, id=payload.program_id, tenant=tenant)
 
+    created_by_membership = None
+    if payload.created_by_membership_id:
+        created_by_membership = get_object_or_404(
+            TenantMembership,
+            id=payload.created_by_membership_id,
+            tenant=tenant,
+        )
+
     thesis = Thesis.objects.create(
         tenant=tenant,
         title=payload.title,
@@ -285,6 +317,7 @@ def create_thesis(request, payload: ThesisCreateUpdateSchema):
         year=payload.year,
         department=dept,
         program=prog,
+        created_by_membership=created_by_membership,
         status='DRAFT'
     )
     # Pre-fetch for the schema

@@ -88,6 +88,7 @@ class ThesisCreateUpdateSchema(Schema):
     year: int
     department_id: Optional[UUID] = None
     program_id: Optional[UUID] = None
+    created_by_membership_id: Optional[UUID] = None
 
 class ThesisSubmitSchema(Schema):
     submitter_membership_id: Optional[UUID] = None

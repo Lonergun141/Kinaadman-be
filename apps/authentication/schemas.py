@@ -23,6 +23,8 @@ class UserResponse(Schema):
     id: str
     email: str
     role: str
+    membership_id: Optional[str] = None
+    is_super_admin: bool = False
 
 class LoginResponse(Schema):
     tokens: TokenResponse

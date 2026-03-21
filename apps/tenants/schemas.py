@@ -1,7 +1,13 @@
 from typing import Optional
 from ninja import ModelSchema, Schema
 from uuid import UUID
-from apps.tenants.models import Tenant, TenantBranding, TenantPolicy
+from apps.tenants.models import (
+    Tenant,
+    TenantBranding,
+    TenantEmailDomain,
+    TenantHostAlias,
+    TenantPolicy,
+)
 
 class TenantBrandingSchema(ModelSchema):
     class Meta:
@@ -49,3 +55,23 @@ class TenantPolicyUpdateSchema(Schema):
     refresh_token_ttl_seconds: int
     require_2fa_email_otp: bool
     allow_remember_device: bool
+
+
+class TenantEmailDomainSchema(ModelSchema):
+    class Meta:
+        model = TenantEmailDomain
+        fields = ["id", "domain", "is_active", "created_at"]
+
+
+class TenantHostAliasSchema(ModelSchema):
+    class Meta:
+        model = TenantHostAlias
+        fields = ["id", "hostname", "is_active", "created_at"]
+
+
+class TenantEmailDomainCreateSchema(Schema):
+    domain: str
+
+
+class TenantHostAliasCreateSchema(Schema):
+    hostname: str

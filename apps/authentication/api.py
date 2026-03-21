@@ -1,19 +1,19 @@
 from ninja import Router
 from django.contrib.auth import authenticate
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
-import datetime
 from ninja.errors import HttpError
-from apps.users.models import User
+from apps.users.models import TenantMembership
 from apps.authentication.models import AuthSession, RefreshToken
 from apps.authentication.schemas import LoginRequest, TokenRefreshRequest, LoginResponse, TokenResponse
 from apps.authentication.services import generate_tokens_for_user
+from apps.repository.api import get_tenant_from_request
 import hashlib
 
 router = Router(tags=["Authentication"])
 
 @router.post("/login", response=LoginResponse)
 def login(request, payload: LoginRequest):
+    tenant = get_tenant_from_request(request)
     user = authenticate(email=payload.email, password=payload.password)
     if not user:
         raise HttpError(401, "Invalid credentials")
@@ -21,11 +21,31 @@ def login(request, payload: LoginRequest):
     if user.is_locked:
         raise HttpError(401, "Account locked")
 
+    membership = TenantMembership.objects.filter(
+        tenant=tenant,
+        user=user,
+        status="ACTIVE",
+    ).first()
+
+    if not membership and not user.is_super_admin:
+        raise HttpError(403, "You do not have an active membership for this archive.")
+
+    policy = tenant.policy if hasattr(tenant, "policy") else None
+    if policy and policy.enforce_email_domains and not user.is_super_admin:
+        email_domain = user.email.split("@")[-1].lower()
+        allowed_domain = tenant.email_domains.filter(
+            domain__iexact=email_domain,
+            is_active=True,
+        ).exists()
+        if not allowed_domain:
+            raise HttpError(403, "Your email domain is not allowed for this archive.")
+
     # MVP: Assume OTP is bypassed.
     # Create Auth Session
     session = AuthSession.objects.create(
-        tenant_id=None, # Update once tenant resolution is built
+        tenant=tenant,
         user=user,
+        membership=membership,
         ip_address=request.META.get('REMOTE_ADDR'),
         user_agent=request.META.get('HTTP_USER_AGENT', '')[:255]
     )
@@ -37,7 +57,9 @@ def login(request, payload: LoginRequest):
         "user": {
             "id": str(user.id),
             "email": user.email,
-            "role": "MEMBER" # Placeholder for role resolution
+            "role": "SUPER_ADMIN" if user.is_super_admin else membership.role,
+            "membership_id": str(membership.id) if membership else None,
+            "is_super_admin": user.is_super_admin,
         }
     }
 

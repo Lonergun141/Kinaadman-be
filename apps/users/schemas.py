@@ -17,16 +17,20 @@ class TenantMembershipSchema(ModelSchema):
 
     class Meta:
         model = TenantMembership
-        fields = ['id', 'role', 'status', 'created_at']
+        fields = ['id', 'role', 'status', 'created_at', 'updated_at']
 
 class UserProfileSchema(Schema):
     user: UserSchema
     memberships: List[TenantMembershipSchema]
 
-class InvitationSchema(ModelSchema):
-    class Meta:
-        model = Invitation
-        fields = ['id', 'email', 'role', 'expires_at', 'accepted_at', 'created_at']
+class InvitationSchema(Schema):
+    id: UUID
+    email: str
+    role: str
+    expires_at: datetime
+    accepted_at: Optional[datetime] = None
+    created_at: datetime
+    accept_url: Optional[str] = None
 
 class InviteCreateSchema(Schema):
     email: str
@@ -34,3 +38,8 @@ class InviteCreateSchema(Schema):
 
 class InviteAcceptSchema(Schema):
     password: str
+
+
+class TenantMembershipUpdateSchema(Schema):
+    role: Optional[str] = None
+    status: Optional[str] = None

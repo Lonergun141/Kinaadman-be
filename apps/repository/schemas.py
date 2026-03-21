@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from datetime import date
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 from ninja import Schema, ModelSchema
@@ -8,6 +7,7 @@ from .models import (
     Department, Program, Thesis, ThesisStatusHistory, ThesisReview,
     ThesisAuthor, ThesisAdviser, Keyword, ThesisFile, ThesisMetadataVersion
 )
+from .readiness import build_publication_readiness
 
 
 # ==========================================
@@ -128,6 +128,29 @@ class ThesisMetadataVersionSchema(ModelSchema):
         model = ThesisMetadataVersion
         fields = ['id', 'version_number', 'snapshot', 'note', 'created_at']
 
+
+class PublicationReadinessCheckSchema(Schema):
+    id: str
+    label: str
+    status: str
+    detail: str
+    blocking: bool
+
+
+class PublicationReadinessSchema(Schema):
+    can_publish_now: bool
+    readiness_score: int
+    blocker_count: int
+    blockers: List[str]
+    adviser_recommendation_status: str
+    adviser_review_decision: Optional[str] = None
+    adviser_recommendation_note: Optional[str] = None
+    adviser_recommendation_by: Optional[str] = None
+    adviser_recommendation_at: Optional[datetime] = None
+    panel_approval_status: str
+    panel_approval_note: Optional[str] = None
+    checklist: List[PublicationReadinessCheckSchema]
+
 class CitationExportSchema(Schema):
     format: str
     filename: str
@@ -145,6 +168,46 @@ class PublicCollectionSummarySchema(Schema):
     years: List[CollectionBucketSchema]
 
 
+class AnalyticsCountBucketSchema(Schema):
+    label: str
+    count: int
+
+
+class AnalyticsValueBucketSchema(Schema):
+    label: str
+    value: int
+
+
+class RepositoryAnalyticsMonthSchema(Schema):
+    key: str
+    month: str
+    created: int
+    submitted: int
+    published: int
+
+
+class RepositoryAnalyticsSummarySchema(Schema):
+    total_records: int
+    published_count: int
+    active_workflow_count: int
+    ready_count: int
+    blocked_count: int
+
+
+class RepositoryAnalyticsOverviewSchema(Schema):
+    as_of: date
+    window_months: int
+    summary: RepositoryAnalyticsSummarySchema
+    monthly_activity: List[RepositoryAnalyticsMonthSchema]
+    status_data: List[AnalyticsCountBucketSchema]
+    department_data: List[AnalyticsCountBucketSchema]
+    active_department_data: List[AnalyticsCountBucketSchema]
+    visibility_data: List[AnalyticsValueBucketSchema]
+    blocker_data: List[AnalyticsCountBucketSchema]
+    pipeline_data: List[AnalyticsCountBucketSchema]
+    readiness_split: List[AnalyticsValueBucketSchema]
+
+
 # ==========================================
 # Theses
 # ==========================================
@@ -153,6 +216,7 @@ class ThesisListSchema(ModelSchema):
     program: Optional[ProgramSchema] = None
     authors: List[ThesisAuthorSchema] = []
     keywords: List[KeywordSchema] = []
+    publication_readiness: PublicationReadinessSchema
 
     @staticmethod
     def resolve_keywords(obj):
@@ -160,6 +224,10 @@ class ThesisListSchema(ModelSchema):
         if thesis_keywords is None:
             return []
         return [entry.keyword for entry in thesis_keywords.all()]
+
+    @staticmethod
+    def resolve_publication_readiness(obj):
+        return build_publication_readiness(obj)
     
     class Meta:
         model = Thesis
@@ -196,6 +264,7 @@ class ThesisDetailSchema(ModelSchema):
     files: List[ThesisFileSchema] = []
     metadata_versions: List[ThesisMetadataVersionSchema] = []
     is_embargo_active: bool = False
+    publication_readiness: PublicationReadinessSchema
 
     @staticmethod
     def resolve_keywords(obj):
@@ -203,6 +272,10 @@ class ThesisDetailSchema(ModelSchema):
         if thesis_keywords is None:
             return []
         return [entry.keyword for entry in thesis_keywords.all()]
+
+    @staticmethod
+    def resolve_publication_readiness(obj):
+        return build_publication_readiness(obj)
     
     class Meta:
         model = Thesis
@@ -221,6 +294,8 @@ class ThesisDetailSchema(ModelSchema):
             'campus_name',
             'rights_license',
             'panel_members',
+            'panel_approval_status',
+            'panel_approval_note',
             'public_slug',
             'submitted_at',
             'approved_at',
@@ -247,6 +322,8 @@ class ThesisCreateUpdateSchema(Schema):
     campus_name: Optional[str] = None
     rights_license: Optional[str] = None
     panel_members: Optional[List[str]] = None
+    panel_approval_status: Optional[str] = None
+    panel_approval_note: Optional[str] = None
     keywords: Optional[List[str]] = None
     defense_date: Optional[date] = None
     embargo_until: Optional[date] = None

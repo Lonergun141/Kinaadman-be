@@ -1,6 +1,6 @@
 from ninja import NinjaAPI, Redoc
 from apps.authentication.api import router as auth_router
-from apps.repository.api import departments_router, programs_router, public_router, theses_router
+from apps.repository.api import analytics_router, departments_router, programs_router, public_router, theses_router
 from apps.users.api import users_router
 from apps.tenants.api import tenants_router
 from core.api import core_router
@@ -18,6 +18,7 @@ All API routes within Kinaadman are strictly tenant-isolated. You must pass a va
 )
 
 api.add_router("/auth/", auth_router)
+api.add_router("/analytics/", analytics_router)
 api.add_router("/departments/", departments_router)
 api.add_router("/programs/", programs_router)
 api.add_router("/theses/", theses_router)

@@ -7,6 +7,8 @@ from django.utils import timezone
 from ninja import Router
 
 from apps.tenants.models import Tenant
+from .analytics import build_repository_analytics_overview
+from .readiness import get_publication_blockers
 from .models import (
     Department, Keyword, Program, Thesis, ThesisAuthor, ThesisAdviser,
     ThesisKeyword, ThesisMetadataVersion, ThesisReview, ThesisStatusHistory
@@ -23,6 +25,7 @@ from .schemas import (
     PublicCollectionSummarySchema,
     PublicThesisDetailSchema,
     PublicThesisListSchema,
+    RepositoryAnalyticsOverviewSchema,
     ThesisArchiveSchema,
     ThesisCreateUpdateSchema,
     ThesisDetailSchema,
@@ -39,6 +42,7 @@ from core.models import AuditLog
 departments_router = Router(tags=["Departments"])
 programs_router = Router(tags=["Programs"])
 theses_router = Router(tags=["Theses"])
+analytics_router = Router(tags=["Repository Analytics"])
 public_router = Router(tags=["Public Repository"])
 
 # ==========================================
@@ -286,6 +290,10 @@ def update_thesis_from_payload(tenant: Tenant, thesis: Thesis, payload: ThesisCr
         thesis.rights_license = payload.rights_license
     if payload.panel_members is not None:
         thesis.panel_members = payload.panel_members
+    if payload.panel_approval_status is not None:
+        thesis.panel_approval_status = payload.panel_approval_status
+    if payload.panel_approval_note is not None:
+        thesis.panel_approval_note = payload.panel_approval_note
     if payload.defense_date is not None:
         thesis.defense_date = payload.defense_date
     if payload.embargo_until is not None:
@@ -519,6 +527,22 @@ def delete_program(request, program_id: UUID):
 # ==========================================
 # Theses Router
 # ==========================================
+@analytics_router.get("/repository/overview", response=RepositoryAnalyticsOverviewSchema)
+def repository_analytics_overview(
+    request,
+    months: int = 6,
+    department_id: Optional[UUID] = None,
+):
+    tenant = get_tenant_from_request(request)
+    qs = build_thesis_queryset(tenant)
+
+    if department_id:
+        get_object_or_404(Department, id=department_id, tenant=tenant)
+        qs = qs.filter(department_id=department_id)
+
+    return build_repository_analytics_overview(qs, month_count=months)
+
+
 @theses_router.get("/", response=List[ThesisListSchema])
 def list_theses(
     request,
@@ -730,6 +754,14 @@ def publish_thesis(request, thesis_id: UUID, payload: ThesisPublishSchema):
 
     if thesis.status != "APPROVED":
         raise HttpError(400, "Only approved records can be published.")
+
+    blockers = get_publication_blockers(thesis)
+    if blockers:
+        raise HttpError(
+            400,
+            "This thesis is not ready for publishing yet. Complete the following first: "
+            + ", ".join(blockers),
+        )
 
     old_status = thesis.status
     thesis.status = "PUBLISHED"

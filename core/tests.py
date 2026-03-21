@@ -72,3 +72,28 @@ class AuditLogAccessTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_super_admin_can_view_audit_log(self):
+        super_admin = User.objects.create_user(
+            email="super.audit@example.edu",
+            password="password123",
+            email_verification_status="VERIFIED",
+            is_super_admin=True,
+            is_staff=True,
+        )
+        session = AuthSession.objects.create(
+            tenant=self.tenant,
+            user=super_admin,
+            membership=None,
+        )
+        tokens = generate_tokens_for_user(super_admin, session)
+        client = Client(
+            HTTP_HOST="127.0.0.1",
+            HTTP_X_TENANT_ID=str(self.tenant.id),
+            HTTP_AUTHORIZATION=f"Bearer {tokens['access_token']}",
+        )
+
+        response = client.get("/v1/core/audit")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 1)

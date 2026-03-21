@@ -50,6 +50,11 @@ class Thesis(TimeStampedModel):
         ('CAPSTONE', 'Capstone'),
         ('DISSERTATION', 'Dissertation'),
     ]
+    PANEL_APPROVAL_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='theses')
@@ -67,6 +72,12 @@ class Thesis(TimeStampedModel):
     rights_license = models.CharField(max_length=255, blank=True)
     public_slug = models.SlugField(max_length=255, blank=True)
     panel_members = models.JSONField(default=list, blank=True)
+    panel_approval_status = models.CharField(
+        max_length=20,
+        choices=PANEL_APPROVAL_CHOICES,
+        default='PENDING',
+    )
+    panel_approval_note = models.TextField(blank=True)
     defense_date = models.DateField(null=True, blank=True)
     embargo_until = models.DateField(null=True, blank=True)
 

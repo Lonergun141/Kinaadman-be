@@ -115,3 +115,19 @@ The backend specifies a custom OTP and Token refresh pipeline:
 1. `POST /v1/auth/login` - Resolves tenant and verifies password. Can enforce Tenant OTP policies.
 2. `POST /v1/auth/otp/verify` - Verifies the generated email OTP challege.
 3. `POST /v1/auth/refresh` - Stateless rotatable token refresh family.
+
+### Full Text Search (FTS) Integration for Frontend
+The `GET /v1/theses/` endpoint supports powerful Postgres Full Text Search (FTS). It uses linguistic lexemes to intelligently match root words and scores/ranks results based on whether the match was found in the thesis title (higher priority) or the abstract (lower priority).
+
+To implement a "Google-like" search bar in your Next.js frontend, simply pass the user's input to the `search` query parameter:
+```javascript
+// Next.js Frontend Example
+const searchQuery = "neural networks";
+const res = await fetch(`http://127.0.0.1:8000/v1/theses/?search=${encodeURIComponent(searchQuery)}`, {
+    headers: {
+        "X-Tenant-ID": currentTenantId
+    }
+});
+const theses = await res.json();
+// The resulting payload is already ranked by relevance and ordered automatically by the backend!
+```

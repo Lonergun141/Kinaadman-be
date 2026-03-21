@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils.text import slugify
 from core.models import TimeStampedModel
 from apps.tenants.models import Tenant
 from apps.users.models import User, TenantMembership
@@ -23,13 +24,36 @@ class Program(models.Model):
     def __str__(self):
         return f"{self.name} - {self.department.name}"
 
+from django.contrib.postgres.search import SearchVector, SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 class Thesis(TimeStampedModel):
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
         ('SUBMITTED', 'Submitted'),
         ('IN_REVIEW', 'In Review'),
+        ('CHANGES_REQUESTED', 'Changes Requested'),
         ('APPROVED', 'Approved'),
         ('PUBLISHED', 'Published'),
+        ('ARCHIVED', 'Archived'),
+    ]
+
+    VISIBILITY_CHOICES = [
+        ('PRIVATE', 'Private'),
+        ('CAMPUS_ONLY', 'Campus Only'),
+        ('PUBLIC', 'Public'),
+        ('EMBARGOED', 'Embargoed'),
+    ]
+
+    TYPE_CHOICES = [
+        ('THESIS', 'Thesis'),
+        ('CAPSTONE', 'Capstone'),
+        ('DISSERTATION', 'Dissertation'),
+    ]
+    PANEL_APPROVAL_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -38,6 +62,27 @@ class Thesis(TimeStampedModel):
     abstract = models.TextField()
     year = models.IntegerField()
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='DRAFT')
+    visibility = models.CharField(max_length=50, choices=VISIBILITY_CHOICES, default='PRIVATE')
+    thesis_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='THESIS')
+    language = models.CharField(max_length=50, default='English')
+    research_category = models.CharField(max_length=255, blank=True)
+    methodology = models.CharField(max_length=255, blank=True)
+    college_name = models.CharField(max_length=255, blank=True)
+    campus_name = models.CharField(max_length=255, blank=True)
+    rights_license = models.CharField(max_length=255, blank=True)
+    public_slug = models.SlugField(max_length=255, blank=True)
+    panel_members = models.JSONField(default=list, blank=True)
+    panel_approval_status = models.CharField(
+        max_length=20,
+        choices=PANEL_APPROVAL_CHOICES,
+        default='PENDING',
+    )
+    panel_approval_note = models.TextField(blank=True)
+    defense_date = models.DateField(null=True, blank=True)
+    embargo_until = models.DateField(null=True, blank=True)
+
+    # FTS
+    search_vector = SearchVectorField(null=True, blank=True)
 
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='theses')
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, null=True, blank=True, related_name='theses')
@@ -47,8 +92,54 @@ class Thesis(TimeStampedModel):
     approved_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            GinIndex(fields=['search_vector']),
+            models.Index(fields=['tenant', 'public_slug']),
+            models.Index(fields=['tenant', 'visibility', 'status']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant', 'public_slug'],
+                condition=~models.Q(public_slug=''),
+                name='uniq_repository_thesis_public_slug_per_tenant',
+            ),
+        ]
+
+    def build_public_slug(self):
+        base_slug = slugify(self.title)[:220] or str(self.id)
+        candidate = base_slug
+        suffix = 2
+
+        while Thesis.objects.filter(
+            tenant=self.tenant,
+            public_slug=candidate,
+        ).exclude(pk=self.pk).exists():
+            candidate = f"{base_slug[:210]}-{suffix}"
+            suffix += 1
+
+        return candidate
+
+    def save(self, *args, **kwargs):
+        if not self.public_slug:
+            self.public_slug = self.build_public_slug()
+        super().save(*args, **kwargs)
+        if hasattr(self, 'id') and self.id:
+            # We must use update() since SearchVector is a query expression, not a string value
+            Thesis.objects.filter(pk=self.pk).update(
+                search_vector=SearchVector('title', weight='A', config='english') + 
+                              SearchVector('abstract', weight='B', config='english')
+            )
+
     def __str__(self):
         return self.title
+
+    @property
+    def is_embargo_active(self):
+        if self.visibility != 'EMBARGOED' or not self.embargo_until:
+            return False
+        from django.utils import timezone
+        return self.embargo_until >= timezone.localdate()
 
 class ThesisStatusHistory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -77,6 +168,27 @@ class ThesisReview(models.Model):
     decision = models.CharField(max_length=50, choices=DECISION_CHOICES, default='PENDING')
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ThesisMetadataVersion(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='thesis_metadata_versions')
+    thesis = models.ForeignKey(Thesis, on_delete=models.CASCADE, related_name='metadata_versions')
+    version_number = models.PositiveIntegerField(default=1)
+    snapshot = models.JSONField(default=dict, blank=True)
+    note = models.CharField(max_length=255, blank=True)
+    created_by_membership = models.ForeignKey(
+        TenantMembership,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='metadata_versions',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-version_number', '-created_at']
+        unique_together = ('thesis', 'version_number')
 
 class ThesisAuthor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -140,6 +252,11 @@ class ThesisFile(models.Model):
         ('MAIN_PDF', 'Main PDF'),
         ('ATTACHMENT', 'Attachment'),
     ]
+    ACCESS_CHOICES = [
+        ('PRIVATE', 'Private'),
+        ('VIEW_ONLY', 'View Only'),
+        ('DOWNLOADABLE', 'Downloadable'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE)
@@ -147,6 +264,9 @@ class ThesisFile(models.Model):
     file_object = models.ForeignKey(FileObject, on_delete=models.CASCADE)
     
     kind = models.CharField(max_length=50, choices=KIND_CHOICES, default='MAIN_PDF')
+    access_level = models.CharField(max_length=50, choices=ACCESS_CHOICES, default='DOWNLOADABLE')
+    version_number = models.PositiveIntegerField(default=1)
+    is_current = models.BooleanField(default=True)
     label = models.CharField(max_length=255, blank=True)
     uploaded_by_membership = models.ForeignKey(TenantMembership, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

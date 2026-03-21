@@ -5,111 +5,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinaadman System Portal</title>
+    <title>Kinaadman Research Repository</title>
     <link rel="icon" href="{% static 'icon-light.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google Fonts: Merriweather for Headings, Inter for Body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap"
+        rel="stylesheet">
+
     <style>
+        :root {
+            --color-primary: #0F2A44;
+            --color-secondary: #C9A227;
+            --color-bg: #F8FAFC;
+            --color-surface: #E5E7EB;
+            --color-text: #1E293B;
+            --color-muted: #64748B;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .font-serif {
+            font-family: 'Merriweather', serif;
+            color: var(--color-primary);
+        }
+
+        .bg-primary {
+            background-color: var(--color-primary);
+        }
+
+        .text-primary {
+            color: var(--color-primary);
+        }
+
+        .bg-secondary {
+            background-color: var(--color-secondary);
+        }
+
+        .text-secondary {
+            color: var(--color-secondary);
+        }
+
+        .border-secondary {
+            border-color: var(--color-secondary);
+        }
+
+        /* Minimalist academic card */
+        .academic-card {
             background-color: #ffffff;
+            border: 1px solid var(--color-surface);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .academic-card:hover {
+            border-color: var(--color-primary);
+            background-color: #F8FAFC;
         }
     </style>
 </head>
 
-<body class="min-h-screen flex items-stretch">
+<body class="h-screen flex flex-col items-center justify-center p-6 lg:p-12 overflow-hidden">
 
-    <!-- Left Sidebar: Corporate Branding (Full Height) -->
-    <div class="w-1/2 bg-slate-800 p-12 text-white flex flex-col justify-between">
-        <div class="max-w-xl mx-auto w-full">
-            <div class="flex items-center space-x-3 mb-10">
-                <img src="{% static 'icon-light.png' %}" alt="Kinaadman Logo"
-                    class="w-10 h-10 rounded-sm object-contain bg-white p-0.5">
-                <span class="font-semibold text-xl tracking-wide uppercase">Kinaadman</span>
+    <div class="w-full max-w-5xl h-full flex flex-col">
+        <!-- Header / Branding -->
+        <header class="flex items-end justify-between border-b-2 border-primary pb-4 flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <img src="{% static 'icon-light.png' %}?v=2" alt="Kinaadman Logo" class="w-10 h-10">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Kinaadman</h1>
+                    <p class="text-xs tracking-widest text-[#64748B] uppercase font-semibold mt-0.5">Research Repository
+                    </p>
+                </div>
             </div>
-            <h2 class="text-4xl font-bold leading-tight mb-6">Enterprise<br>Repository<br>System</h2>
-            <div class="w-12 h-1.5 bg-blue-500 mb-6"></div>
-            <p class="text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
-                Secure, scalable, and centralized management of academic assets and research workflows.
-            </p>
-        </div>
+            <div class="hidden sm:block text-right text-xs text-[#64748B]">
+                <p>Version 2.1.0 (Stable)</p>
+                <p>Authorized Access Only</p>
+            </div>
+        </header>
 
-        <div class="max-w-xl mx-auto w-full text-xs text-slate-500 mt-auto">
-            v2.1.0-stable
-        </div>
-    </div>
-
-    <!-- Right Side: Content & Action (Full Height) -->
-    <div class="w-1/2 bg-gray-50 flex flex-col justify-center p-12 lg:p-24 overflow-y-auto">
-        <div class="max-w-md w-full mx-auto">
-
-            <div class="mb-10">
-                <h1 class="text-3xl font-bold text-gray-900 mb-3">System Authentication Gateway</h1>
-                <p class="text-base text-gray-600 border-b border-gray-200 pb-5">
-                    Please select the appropriate portal to proceed with your session. Access is restricted to
-                    authorized personnel only.
+        <!-- Main Content Area -->
+        <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-12 my-8 min-h-0">
+            <!-- Introduction Column -->
+            <div class="lg:col-span-5 flex flex-col justify-center">
+                <h2 class="text-3xl font-light leading-snug mb-4 text-primary">
+                    Institutional Scholarship & Archival Integrity
+                </h2>
+                <div class="w-12 h-1 bg-secondary mb-6"></div>
+                <p class="text-base text-[#64748B] font-light leading-relaxed">
+                    A centralized, secure digital repository dedicated to preserving, curating, and disseminating
+                    academic
+                    scholarship, thesis collections, and empirical datasets.
                 </p>
             </div>
 
-            <div class="space-y-5">
-                <!-- Admin Portal Card -->
-                <a href="/admin/"
-                    class="block group border border-gray-200 rounded-sm p-6 hover:border-blue-500 hover:shadow-md transition-all bg-white relative overflow-hidden">
-                    <!-- Accent bar -->
-                    <div
-                        class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top">
-                    </div>
+            <!-- Portals Column -->
+            <div class="lg:col-span-7 flex flex-col justify-center">
+                <div class="bg-white border border-[#E5E7EB] p-8 shadow-sm relative h-full flex flex-col">
+                    <h3 class="text-xl font-bold mb-2">Access Portals</h3>
+                    <p class="text-sm text-[#64748B] mb-6 pb-4 border-b border-[#E5E7EB]">
+                        Select your workspace. Institutional credentials required.
+                    </p>
 
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mt-1">
-                            <svg class="h-7 w-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div class="ml-5">
-                            <h3 class="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                Administrative Workspace</h3>
-                            <p class="mt-2 text-sm text-gray-500">Log in to the central dashboard for tenant, user, and
-                                data management.</p>
-                        </div>
-                    </div>
-                </a>
+                    <div class="space-y-4 flex-1 overflow-y-auto pr-2">
+                        <!-- Administration Portal -->
+                        <a href="/admin/" class="academic-card block p-4 sm:flex sm:items-center group">
+                            <div class="sm:flex-shrink-0 mb-2 sm:mb-0">
+                                <div
+                                    class="w-10 h-10 bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-center rounded-sm text-primary">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                        </path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="sm:ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-primary group-hover:text-secondary transition-colors font-serif">
+                                        Repository Administration</h4>
+                                    <svg class="w-4 h-4 text-[#E5E7EB] group-hover:text-secondary transition-colors"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                                <p class="text-xs text-[#64748B] mt-1">Manage taxonomies, curate submissions, and
+                                    configure settings.</p>
+                            </div>
+                        </a>
 
-                <!-- API Docs Card -->
-                <a href="/v1/docs/"
-                    class="block group border border-gray-200 rounded-sm p-6 hover:border-slate-800 hover:shadow-md transition-all bg-white relative overflow-hidden">
-                    <div
-                        class="absolute left-0 top-0 bottom-0 w-1 bg-slate-800 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-top">
+                        <!-- API Developer Portal -->
+                        <a href="/v1/docs/" class="academic-card block p-4 sm:flex sm:items-center group">
+                            <div class="sm:flex-shrink-0 mb-2 sm:mb-0">
+                                <div
+                                    class="w-10 h-10 bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-center rounded-sm text-primary">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="sm:ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h4
+                                        class="font-bold text-primary group-hover:text-secondary transition-colors font-serif">
+                                        Developer API Reference</h4>
+                                    <svg class="w-4 h-4 text-[#E5E7EB] group-hover:text-secondary transition-colors"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                                <p class="text-xs text-[#64748B] mt-1">OpenAPI specifications and integration guides.
+                                </p>
+                            </div>
+                        </a>
                     </div>
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mt-1">
-                            <svg class="h-7 w-7 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-5">
-                            <h3
-                                class="text-xl font-semibold text-gray-900 group-hover:text-slate-800 transition-colors">
-                                Developer API Portal</h3>
-                            <p class="mt-2 text-sm text-gray-500">Access REST API documentation, endpoints, and
-                                integration guides.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="mt-16 pt-8 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
-                <p>&copy; 2026 Kinaadman Systems. All rights reserved.</p>
-                <div class="flex space-x-6">
-                    <a href="#" class="hover:text-gray-800 transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-gray-800 transition-colors">Terms of Service</a>
                 </div>
             </div>
+        </main>
 
-        </div>
+        <!-- Footer -->
+        <footer
+            class="flex-shrink-0 pt-4 text-xs text-[#64748B] flex flex-col sm:flex-row justify-between items-center border-t border-[#E5E7EB]">
+            <p>&copy; 2026 Kinaadman Repository. All rights reserved.</p>
+            <div class="flex space-x-6 mt-2 sm:mt-0">
+                <a href="#" class="hover:text-primary transition-colors">Data Privacy Protocol</a>
+                <a href="#" class="hover:text-primary transition-colors">Terms of Use</a>
+            </div>
+        </footer>
     </div>
 
 </body>

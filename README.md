@@ -61,6 +61,9 @@ Create a `.env` file in the project root containing your local configurations:
 ```ini
 DEBUG=True
 SECRET_KEY=generate_a_secure_random_key_here
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+CSRF_TRUSTED_ORIGINS=http://localhost:8000
 
 # Local PostgreSQL Connection
 DATABASE_URL=postgres://postgres:qwerty@localhost:5434/kinaadman
@@ -98,6 +101,36 @@ Access the beautifully themed backend administration panel at:
 ### API Documentation (Django Ninja)
 The API leverages Django Ninja to auto-generate OpenAPI documentation. Kinaadman uses a custom branded override of Redoc.
 - **Redoc UI:** `http://127.0.0.1:8000/v1/docs/`
+
+## Render Deployment
+
+This project now includes Render-ready production settings, a `build.sh`, and a `render.yaml`.
+
+### Required environment variables
+- `SECRET_KEY`
+- `DATABASE_URL`
+- `CORS_ALLOWED_ORIGINS`
+- `CSRF_TRUSTED_ORIGINS`
+
+For your current frontend deployment:
+- `CORS_ALLOWED_ORIGINS=https://kinaadman.vercel.app`
+- `CSRF_TRUSTED_ORIGINS=https://kinaadman.vercel.app`
+
+### Automatic Render behavior
+- `RENDER_EXTERNAL_HOSTNAME` is appended to `ALLOWED_HOSTS` automatically.
+- `CSRF_TRUSTED_ORIGINS` automatically includes `https://<RENDER_EXTERNAL_HOSTNAME>` in production.
+- Static files are collected into `staticfiles/` and served with WhiteNoise.
+
+### Manual Render commands
+If you configure the service manually instead of using the blueprint:
+
+```bash
+# Build command
+bash build.sh
+
+# Start command
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-4} --log-file -
+```
 
 ## Development Notes
 

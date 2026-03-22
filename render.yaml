@@ -1,0 +1,27 @@
+databases:
+  - name: kinaadman-db
+    databaseName: kinaadman
+    user: kinaadman
+
+services:
+  - type: web
+    name: kinaadman-be
+    runtime: python
+    healthCheckPath: /
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-4} --log-file -
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kinaadman-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://kinaadman.vercel.app
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://kinaadman.vercel.app
+      - key: WEB_CONCURRENCY
+        value: "4"
